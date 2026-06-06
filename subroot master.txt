@@ -1,0 +1,13 @@
+project_root/
+├── src/
+│   └── data_tool/
+│       ├── __init__.py
+│       ├── processors/       # Sub-root 1: Data cleaning logic
+│       │   ├── __init__.py
+│       │   └── clean.py
+│       └── analysis/         # Sub-root 2: Statistical logic
+│           ├── __init__.py
+│           └── stats.py
+├── tests/                    # Tests mirroring the src structure
+├── pyproject.toml            # Configuration and dependencies
+└── main.py                   # The "entry point"
