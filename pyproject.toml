@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "locic"
+version = "0.1.0"
+description = "Experimental workflow tools for automated code generation, review, and refinement."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["workflow", "code-generation", "refinement", "automation"]
+authors = [
+  { name = "akinbgbpride1", email = "noreply@example.com" }
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
+]
+dependencies = [
+  "PyYAML>=6.0"
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+market = ["pandas>=1.5.0", "yfinance>=0.2.0"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+script-files = ["run.py", "chatbot.py", "Implement guardrails.py"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

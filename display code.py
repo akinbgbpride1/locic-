@@ -67,4 +67,17 @@ def display_professional_dashboard():
     if years >= 50:
         print(f" Projected Timeline:           50+ Years (Capped)")
     else:
-        print(f
+        print(f" Projected Timeline:           {years:.1f} Years")
+
+    print("="*70)
+    for acc in final_portfolio:
+        print(
+            f" {acc.name:15} Balance: ${acc.balance:,.2f}  "
+            f"Total Contributed: ${acc.total_contributed:,.2f}  "
+            f"Return: {acc.annual_return:.1f}%"
+        )
+    print("="*70)
+
+
+if __name__ == "__main__":
+    display_professional_dashboard()

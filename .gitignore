@@ -1,1 +1,8 @@
-__pycache__/\n*.pyc\n
+__pycache__/
+*.pyc
+chat_memory/
+workshop_dir/
+data_store/
+*.bin
+*.log
+*.egg-info/
