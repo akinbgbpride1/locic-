@@ -1,0 +1,22 @@
+import openai # Or your preferred LLM client
+
+class CodeGenTool:
+    def __init__(self, api_key: str):
+        self.client = openai.OpenAI(api_key=api_key)
+
+    def fill_gap(self, prefix: str, suffix: str) -> str:
+        """
+        Uses an LLM to generate code that bridges the gap between prefix and suffix.
+        """
+        prompt = f"<PRE> {prefix} <SUF> {suffix} <MID>"
+        
+        response = self.client.chat.completions.create(
+            model="gpt-4o", # Or a dedicated code model like codestral
+            messages=[
+                {"role": "system", "content": "You are a code completion engine. Return only the missing code."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2, # Low temperature for deterministic code
+            max_tokens=150
+        )
+        return response.choices[0].message.content
