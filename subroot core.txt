@@ -1,0 +1,14 @@
+project_root/
+├── src/
+│   └── my_app/
+│       ├── __init__.py
+│       ├── api/               # Infrastructure: Routes, controllers (HTTP/CLI)
+│       │   └── routes.py      # Thin layer: just receives requests
+│       ├── core/              # YOUR CORE ACTIONS
+│       │   ├── __init__.py
+│       │   ├── user_actions.py
+│       │   └── order_actions.py
+│       └── models/            # Data structure definitions
+│           └── schemas.py
+├── tests/
+└── main.py
