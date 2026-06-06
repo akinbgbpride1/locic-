@@ -3,9 +3,11 @@ import logging
 import os
 from src.tools.code_gen import CodeGenTool
 from src.tools.code_reviewer import CodeReviewerTool
-from src.core.refinement import RefinementEngine # Assuming your refiner is here
+from src.core.refinement import RefinementEngine
+from src.core.workflow import ensure_workspace, sanitize_branch_name, execute_command, write_code
 
 # Logger setup as defined previously
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger("Orchestrator")
 
 class WorkflowOrchestrator:
@@ -21,12 +23,11 @@ class WorkflowOrchestrator:
         
         try:
             # 1. Setup Environment
-            if not os.path.exists(self.workspace):
-                os.makedirs(self.workspace)
+            ensure_workspace(self.workspace)
             
             # 2. Start Git Branch
-            branch_name = f"feature/{task_description.replace(' ', '_')}"
-            subprocess.run(["git", "checkout", "-b", branch_name], check=True)
+            branch_name = sanitize_branch_name(task_description)
+            execute_command(["git", "checkout", "-b", branch_name])
             
             # 3. Initial Generation
             logger.info("Generating initial code draft...")
@@ -37,13 +38,11 @@ class WorkflowOrchestrator:
             final_code = self.refiner.run_refinement_loop(initial_code, max_attempts=3)
             
             # 5. Final Commit
-            with open(f"{self.workspace}/main.py", "w") as f:
-                f.write(final_code)
-            
-            subprocess.run(["git", "add", "."], check=True)
-            subprocess.run(["git", "commit", "-m", f"Implemented: {task_description}"], check=True)
-            subprocess.run(["git", "checkout", "main"], check=True)
-            subprocess.run(["git", "merge", branch_name], check=True)
+            write_code(f"{self.workspace}/main.py", final_code)
+            execute_command(["git", "add", "."])
+            execute_command(["git", "commit", "-m", f"Implemented: {task_description}"])
+            execute_command(["git", "checkout", "main"])
+            execute_command(["git", "merge", branch_name])
             
             logger.info("Workflow completed successfully.")
             

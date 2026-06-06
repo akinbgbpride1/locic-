@@ -1,9 +1,10 @@
+import argparse
 import subprocess
 import os
 import logging
 from src.tools.code_gen import CodeGenTool
-from src.tools.code_reviewer import CodeReviewerTool
 from src.tools.refinement_engine import RefinementEngine
+from src.core.workflow import ensure_workspace, sanitize_branch_name, execute_command, write_code
 
 # Setup logging for auditability
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
@@ -26,10 +27,8 @@ class WorkflowOrchestrator:
     def run_workflow(self, task_description: str):
         logger.info(f"Starting workflow: {task_description}")
         
-        if not os.path.exists(self.workspace):
-            os.makedirs(self.workspace)
-        
-        branch_name = f"feature/{task_description.replace(' ', '_')}"
+        ensure_workspace(self.workspace)
+        branch_name = sanitize_branch_name(task_description)
         
         try:
             # Git operations with error handling
@@ -40,8 +39,7 @@ class WorkflowOrchestrator:
             refined_code = self.refiner.run_refinement_loop(code)
             
             # Save and Merge
-            with open(f"{self.workspace}/main.py", "w") as f:
-                f.write(refined_code)
+            write_code(f"{self.workspace}/main.py", refined_code)
             
             self._execute(["git", "add", "."])
             self._execute(["git", "commit", "-m", f"Implemented {task_description}"])
@@ -52,3 +50,18 @@ class WorkflowOrchestrator:
             
         except Exception as e:
             logger.critical(f"Pipeline crashed: {e}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run the locic workflow orchestrator.")
+    parser.add_argument("task", help="Task description for code generation.")
+    parser.add_argument("--api-key", help="Optional API key for tooling.")
+    args = parser.parse_args()
+
+    api_key = args.api_key or os.getenv("OPENAI_API_KEY")
+    orchestrator = WorkflowOrchestrator(api_key)
+    orchestrator.run_workflow(args.task)
+
+
+if __name__ == "__main__":
+    main()

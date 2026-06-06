@@ -1,41 +1,39 @@
-import subprocess
-import os
-import shutil
+import logging
 from src.tools.code_gen import CodeGenTool
 from src.tools.code_reviewer import CodeReviewerTool
+from src.core.refinement import RefinementEngine
+from src.core.workflow import ensure_workspace, sanitize_branch_name, execute_command, write_code
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+logger = logging.getLogger("Orchestrator")
 
 class WorkflowOrchestrator:
     def __init__(self, api_key):
         self.generator = CodeGenTool(api_key)
         self.reviewer = CodeReviewerTool(api_key)
+        self.refiner = RefinementEngine(api_key)
         self.workspace = "workshop_dir"
 
     def run_workflow(self, task_description):
-        # 1. Generate Workshop
-        if not os.path.exists(self.workspace):
-            os.makedirs(self.workspace)
-        
-        # 2. Generate Branch
-        branch_name = f"feature/{task_description.replace(' ', '_')}"
-        subprocess.run(["git", "checkout", "-b", branch_name])
-        
-        # 3. Generate Python Code
-        print("Generating code...")
+        logger.info(f"Starting workflow: {task_description}")
+        ensure_workspace(self.workspace)
+
+        branch_name = sanitize_branch_name(task_description)
+        execute_command(["git", "checkout", "-b", branch_name])
+
+        logger.info("Generating code...")
         code = self.generator.generate(task_description)
-        
-        # 4. Review Code
-        print("Reviewing code...")
+
+        logger.info("Reviewing code...")
         review = self.reviewer.review(code)
-        
-        # 5. Merge Reviewed Code (Conditional)
+
         if review["passed"]:
-            print("Review Passed! Merging code...")
-            with open(f"{self.workspace}/main.py", "w") as f:
-                f.write(code)
-            subprocess.run(["git", "add", "."])
-            subprocess.run(["git", "commit", "-m", f"Implemented {task_description}")
-            subprocess.run(["git", "checkout", "main"])
-            subprocess.run(["git", "merge", branch_name])
+            logger.info("Review passed. Writing code and merging branch.")
+            write_code(f"{self.workspace}/main.py", code)
+            execute_command(["git", "add", "."])
+            execute_command(["git", "commit", "-m", f"Implemented {task_description}"])
+            execute_command(["git", "checkout", "main"])
+            execute_command(["git", "merge", branch_name])
         else:
-            print("Review Failed! Code not merged.")
-            print(f"Feedback: {review['feedback']}")
+            logger.warning("Review failed. Code not merged.")
+            logger.warning(f"Feedback: {review['feedback']}")
